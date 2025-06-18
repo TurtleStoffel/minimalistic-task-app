@@ -11,8 +11,8 @@ function createWindow() {
     maximizable: false,
     fullscreenable: false,
     autoHideMenuBar: true,
-    alwaysOnTop: true, // Make the window float above others
-    frame: true, // Restore the window frame and title bar
+    alwaysOnTop: true,
+    frame: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
@@ -40,23 +40,23 @@ function createWindow() {
 
   // Generate HTML for tasks and inbox
   const tasksHtml = Array.isArray(tasks) && tasks.length > 0
-    ? `<ul style='padding:0 1em;'>${tasks.map(t => `<li>${typeof t === 'string' ? t : JSON.stringify(t)}</li>`).join('')}</ul>`
-    : '<p style="margin:0;">No tasks found.</p>';
+    ? `<ul style='padding:0 0.5em;margin:0;font-size:11px;'>${tasks.map(t => `<li style="margin-bottom:2px;">${typeof t === 'string' ? t : JSON.stringify(t)}</li>`).join('')}</ul>`
+    : '<p style="margin:0;font-size:11px;">No tasks found.</p>';
   const inboxHtml = Array.isArray(inbox) && inbox.length > 0
-    ? `<ul style='padding:0 1em;'>${inbox.map(t => `<li>${typeof t === 'string' ? t : JSON.stringify(t)}</li>`).join('')}</ul>`
-    : '<p style="margin:0;">No inbox tasks found.</p>';
+    ? `<ul style='padding:0 0.5em;margin:0;font-size:11px;'>${inbox.map(t => `<li style="margin-bottom:2px;">${typeof t === 'string' ? t : JSON.stringify(t)}</li>`).join('')}</ul>`
+    : '<p style="margin:0;font-size:11px;">No inbox tasks found.</p>';
 
   win.loadURL('data:text/html,' +
     encodeURIComponent(`
       <html>
-        <body style="display:flex;align-items:center;justify-content:flex-start;height:100%;margin:0;flex-direction:column;">
-          <h1 style='margin:0;font-size:1.5em;'>Tasks</h1>
+        <body style="display:flex;align-items:center;justify-content:flex-start;height:100%;margin:0;flex-direction:column;background:#fff;">
+          <h1 style='margin:2px 0 0 0;font-size:13px;font-weight:600;'>Tasks</h1>
           <div style='width:100%;text-align:left;flex:1 1 auto;'>${tasksHtml}</div>
-          <h2 style='margin:0.5em 0 0 0;font-size:1.2em;'>Task Inbox</h2>
+          <h2 style='margin:4px 0 0 0;font-size:12px;font-weight:600;'>Task Inbox</h2>
           <div style='width:100%;text-align:left;flex:1 1 auto;'>${inboxHtml}</div>
-          <form id="taskForm" style="width:90%;margin:1em auto 0 auto;display:flex;gap:0.5em;">
-            <input id="taskInput" type="text" placeholder="New task..." style="flex:1;padding:0.3em;font-size:1em;" required />
-            <button type="submit" style="padding:0.3em 0.8em;font-size:1em;">Add</button>
+          <form id="taskForm" style="width:98%;margin:4px auto 0 auto;display:flex;gap:2px;">
+            <input id="taskInput" type="text" placeholder="New task..." style="flex:1;padding:2px 4px;font-size:11px;" required />
+            <button type="submit" style="padding:2px 8px;font-size:11px;">+</button>
           </form>
           <script>
             const { ipcRenderer } = require('electron');
