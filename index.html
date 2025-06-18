@@ -11,7 +11,7 @@
     h2 { font-size: 12px; margin-top: 4px; }
     ul { padding: 0 0.5em; margin: 0; font-size: 11px; }
     li { margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between; }
-    button.remove { margin-left: 4px; padding: 0 4px; font-size: 10px; line-height: 1; height: 16px; }
+    button.remove, button.move { margin-left: 4px; padding: 0 4px; font-size: 10px; line-height: 1; height: 16px; }
     #taskForm { width: 98%; margin: 4px auto 0 auto; display: flex; gap: 2px; }
     #taskInput { flex: 1; padding: 2px 4px; font-size: 11px; }
     #addBtn { padding: 2px 8px; font-size: 11px; }
@@ -28,26 +28,32 @@
   </form>
   <script>
     const { ipcRenderer } = require('electron');
-    function renderList(container, items, removeHandler) {
+    function renderList(container, items, removeHandler, moveHandler) {
       if (!Array.isArray(items) || items.length === 0) {
         container.innerHTML = '<p style="margin:0;">No items found.</p>';
         return;
       }
       container.innerHTML = '<ul>' + items.map((t, i) =>
-        `<li>${typeof t === 'string' ? t : JSON.stringify(t)}${removeHandler ? ` <button class='remove' data-index='${i}'>×</button>` : ''}</li>`
+        `<li>${typeof t === 'string' ? t : JSON.stringify(t)}${moveHandler ? ` <button class='move' data-index='${i}' title='Add to Queue'>&#8594;</button>` : ''}${removeHandler ? ` <button class='remove' data-index='${i}'>×</button>` : ''}</li>`
       ).join('') + '</ul>';
       if (removeHandler) {
         container.querySelectorAll('button.remove').forEach(btn => {
           btn.onclick = e => removeHandler(parseInt(btn.dataset.index, 10));
         });
       }
+      if (moveHandler) {
+        container.querySelectorAll('button.move').forEach(btn => {
+          btn.onclick = e => moveHandler(parseInt(btn.dataset.index, 10));
+        });
+      }
     }
     function refresh() {
       ipcRenderer.invoke('get-tasks').then(({ tasks, inbox }) => {
         renderList(document.getElementById('tasks'), tasks);
-        renderList(document.getElementById('inbox'), inbox, idx => {
-          ipcRenderer.send('remove-task-inbox', idx);
-        });
+        renderList(document.getElementById('inbox'), inbox,
+          idx => ipcRenderer.send('remove-task-inbox', idx),
+          idx => ipcRenderer.send('move-task-to-queue', idx)
+        );
       });
     }
     document.getElementById('taskForm').onsubmit = e => {
