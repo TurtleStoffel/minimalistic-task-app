@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=220, initial-scale=1.0">
+  <title>Task App</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #fff; font-size: 11px; }
+    h1, h2 { margin: 2px 0 0 0; font-size: 13px; font-weight: 600; }
+    h2 { font-size: 12px; margin-top: 4px; }
+    ul { padding: 0 0.5em; margin: 0; font-size: 11px; }
+    li { margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between; }
+    button.remove { margin-left: 4px; padding: 0 4px; font-size: 10px; line-height: 1; height: 16px; }
+    #taskForm { width: 98%; margin: 4px auto 0 auto; display: flex; gap: 2px; }
+    #taskInput { flex: 1; padding: 2px 4px; font-size: 11px; }
+    #addBtn { padding: 2px 8px; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <h1>Tasks</h1>
+  <div id="tasks"></div>
+  <h2>Task Inbox</h2>
+  <div id="inbox"></div>
+  <form id="taskForm">
+    <input id="taskInput" type="text" placeholder="New task..." required />
+    <button id="addBtn" type="submit">+</button>
+  </form>
+  <script>
+    const { ipcRenderer } = require('electron');
+    function renderList(container, items, removeHandler) {
+      if (!Array.isArray(items) || items.length === 0) {
+        container.innerHTML = '<p style="margin:0;">No items found.</p>';
+        return;
+      }
+      container.innerHTML = '<ul>' + items.map((t, i) =>
+        `<li>${typeof t === 'string' ? t : JSON.stringify(t)}${removeHandler ? ` <button class='remove' data-index='${i}'>×</button>` : ''}</li>`
+      ).join('') + '</ul>';
+      if (removeHandler) {
+        container.querySelectorAll('button.remove').forEach(btn => {
+          btn.onclick = e => removeHandler(parseInt(btn.dataset.index, 10));
+        });
+      }
+    }
+    function refresh() {
+      ipcRenderer.invoke('get-tasks').then(({ tasks, inbox }) => {
+        renderList(document.getElementById('tasks'), tasks);
+        renderList(document.getElementById('inbox'), inbox, idx => {
+          ipcRenderer.send('remove-task-inbox', idx);
+        });
+      });
+    }
+    document.getElementById('taskForm').onsubmit = e => {
+      e.preventDefault();
+      const value = document.getElementById('taskInput').value.trim();
+      if (value) {
+        ipcRenderer.send('add-task-inbox', value);
+        document.getElementById('taskInput').value = '';
+      }
+    };
+    ipcRenderer.on('tasks-updated', refresh);
+    refresh();
+  </script>
+</body>
+</html>
