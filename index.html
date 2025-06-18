@@ -20,17 +20,17 @@
 <body>
   <h1>Task Queue</h1>
   <div id="tasks"></div>
-  <h2>Task Inbox</h2>
-  <div id="inbox"></div>
-  <form id="taskForm">
-    <input id="taskInput" type="text" placeholder="New task..." required />
-    <button id="addBtn" type="submit">+</button>
-  </form>
   <h2>Task Scratch Pad</h2>
   <div id="scratch"></div>
   <form id="scratchForm">
     <input id="scratchInput" type="text" placeholder="Quick note..." required />
     <button id="addScratchBtn" type="submit">+</button>
+  </form>
+  <h2>Task Inbox</h2>
+  <div id="inbox"></div>
+  <form id="taskForm">
+    <input id="taskInput" type="text" placeholder="New task..." required />
+    <button id="addBtn" type="submit">+</button>
   </form>
   <script>
     const { ipcRenderer } = require('electron');
@@ -61,16 +61,16 @@
           idx => ipcRenderer.send('remove-task-queue', idx)
         );
         renderList(
-          document.getElementById('inbox'),
-          inbox,
-          idx => ipcRenderer.send('remove-task-inbox', idx),
-          idx => ipcRenderer.send('move-task-to-queue', idx)
-        );
-        renderList(
           document.getElementById('scratch'),
           scratch,
           idx => ipcRenderer.send('remove-task-scratch', idx),
           idx => ipcRenderer.send('move-scratch-to-queue', idx)
+        );
+        renderList(
+          document.getElementById('inbox'),
+          inbox,
+          idx => ipcRenderer.send('remove-task-inbox', idx),
+          idx => ipcRenderer.send('move-task-to-queue', idx)
         );
       });
     }
