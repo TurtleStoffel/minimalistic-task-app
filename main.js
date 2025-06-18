@@ -102,6 +102,22 @@ ipcMain.on('move-task-to-queue', (event, idx) => {
   }
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
+ipcMain.on('remove-task-queue', (event, idx) => {
+  const tasksPath = path.join('C:', 'Users', 'stefa', 'coding', 'task-queue', 'task-queue.json');
+  let tasks = [];
+  try {
+    if (fs.existsSync(tasksPath)) {
+      tasks = JSON.parse(fs.readFileSync(tasksPath, 'utf-8'));
+    }
+  } catch (e) {
+    tasks = [];
+  }
+  if (idx >= 0 && idx < tasks.length) {
+    tasks.splice(idx, 1);
+    fs.writeFileSync(tasksPath, JSON.stringify(tasks, null, 2), 'utf-8');
+  }
+  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
+});
 
 app.whenReady().then(createWindow);
 

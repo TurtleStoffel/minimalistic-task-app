@@ -18,7 +18,7 @@
   </style>
 </head>
 <body>
-  <h1>Tasks</h1>
+  <h1>Task Queue</h1>
   <div id="tasks"></div>
   <h2>Task Inbox</h2>
   <div id="inbox"></div>
@@ -49,8 +49,14 @@
     }
     function refresh() {
       ipcRenderer.invoke('get-tasks').then(({ tasks, inbox }) => {
-        renderList(document.getElementById('tasks'), tasks);
-        renderList(document.getElementById('inbox'), inbox,
+        renderList(
+          document.getElementById('tasks'),
+          tasks,
+          idx => ipcRenderer.send('remove-task-queue', idx)
+        );
+        renderList(
+          document.getElementById('inbox'),
+          inbox,
           idx => ipcRenderer.send('remove-task-inbox', idx),
           idx => ipcRenderer.send('move-task-to-queue', idx)
         );
