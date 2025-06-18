@@ -12,9 +12,9 @@
     ul { padding: 0 0.5em; margin: 0; font-size: 11px; }
     li { margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between; }
     button.remove, button.move { margin-left: 4px; padding: 0 4px; font-size: 10px; line-height: 1; height: 16px; }
-    #taskForm { width: 98%; margin: 4px auto 0 auto; display: flex; gap: 2px; }
-    #taskInput { flex: 1; padding: 2px 4px; font-size: 11px; }
-    #addBtn { padding: 2px 8px; font-size: 11px; }
+    #taskForm, #scratchForm { width: 98%; margin: 4px auto 0 auto; display: flex; gap: 2px; }
+    #taskInput, #scratchInput { flex: 1; padding: 2px 4px; font-size: 11px; }
+    #addBtn, #addScratchBtn { padding: 2px 8px; font-size: 11px; }
   </style>
 </head>
 <body>
@@ -25,6 +25,12 @@
   <form id="taskForm">
     <input id="taskInput" type="text" placeholder="New task..." required />
     <button id="addBtn" type="submit">+</button>
+  </form>
+  <h2>Task Scratch Pad</h2>
+  <div id="scratch"></div>
+  <form id="scratchForm">
+    <input id="scratchInput" type="text" placeholder="Quick note..." required />
+    <button id="addScratchBtn" type="submit">+</button>
   </form>
   <script>
     const { ipcRenderer } = require('electron');
@@ -48,7 +54,7 @@
       }
     }
     function refresh() {
-      ipcRenderer.invoke('get-tasks').then(({ tasks, inbox }) => {
+      ipcRenderer.invoke('get-tasks').then(({ tasks, inbox, scratch }) => {
         renderList(
           document.getElementById('tasks'),
           tasks,
@@ -60,6 +66,12 @@
           idx => ipcRenderer.send('remove-task-inbox', idx),
           idx => ipcRenderer.send('move-task-to-queue', idx)
         );
+        renderList(
+          document.getElementById('scratch'),
+          scratch,
+          idx => ipcRenderer.send('remove-task-scratch', idx),
+          idx => ipcRenderer.send('move-scratch-to-queue', idx)
+        );
       });
     }
     document.getElementById('taskForm').onsubmit = e => {
@@ -68,6 +80,14 @@
       if (value) {
         ipcRenderer.send('add-task-inbox', value);
         document.getElementById('taskInput').value = '';
+      }
+    };
+    document.getElementById('scratchForm').onsubmit = e => {
+      e.preventDefault();
+      const value = document.getElementById('scratchInput').value.trim();
+      if (value) {
+        ipcRenderer.send('add-task-scratch', value);
+        document.getElementById('scratchInput').value = '';
       }
     };
     ipcRenderer.on('tasks-updated', refresh);
