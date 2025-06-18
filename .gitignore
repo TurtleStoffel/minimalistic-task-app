@@ -1,3 +1,6 @@
+.vscode/
+
+## Default .gitnore for Node.js projects
 # Logs
 logs
 *.log
