@@ -25,8 +25,8 @@ function getTasksAndInbox() {
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 220,
-    height: 320,
+    width: 300,
+    height: 300,
     resizable: false,
     minimizable: false,
     maximizable: false,
