@@ -1,0 +1,15 @@
+{
+  "name": "electron-task-app",
+  "version": "0.0.1",
+  "description": "UI for Task App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TurtleStoffel",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^36.4.0"
+  }
+}
