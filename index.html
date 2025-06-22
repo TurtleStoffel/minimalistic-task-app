@@ -58,7 +58,8 @@
         renderList(
           document.getElementById('tasks'),
           tasks,
-          idx => ipcRenderer.send('remove-task-queue', idx)
+          idx => ipcRenderer.send('remove-task-queue', idx),
+          idx => ipcRenderer.send('move-queue-to-inbox', idx)
         );
         renderList(
           document.getElementById('scratch'),

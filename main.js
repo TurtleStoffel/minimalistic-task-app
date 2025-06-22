@@ -185,6 +185,34 @@ ipcMain.on('move-scratch-to-queue', (event, idx) => {
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
+ipcMain.on('move-queue-to-inbox', (event, idx) => {
+  const tasksPath = path.join('C:', 'Users', 'stefa', 'coding', 'task-queue', 'task-queue.json');
+  const inboxPath = path.join('C:', 'Users', 'stefa', 'coding', 'task-queue', 'Task Inbox.json');
+  let tasks = [];
+  let inbox = [];
+  try {
+    if (fs.existsSync(tasksPath)) {
+      tasks = JSON.parse(fs.readFileSync(tasksPath, 'utf-8'));
+    }
+  } catch (e) {
+    tasks = [];
+  }
+  try {
+    if (fs.existsSync(inboxPath)) {
+      inbox = JSON.parse(fs.readFileSync(inboxPath, 'utf-8'));
+    }
+  } catch (e) {
+    inbox = [];
+  }
+  if (idx >= 0 && idx < tasks.length) {
+    const [task] = tasks.splice(idx, 1);
+    inbox.push(task);
+    fs.writeFileSync(tasksPath, JSON.stringify(tasks, null, 2), 'utf-8');
+    fs.writeFileSync(inboxPath, JSON.stringify(inbox, null, 2), 'utf-8');
+  }
+  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
+});
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
