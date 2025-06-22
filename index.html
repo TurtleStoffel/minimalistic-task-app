@@ -5,42 +5,103 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=220, initial-scale=1.0">
   <title>Task App</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; margin: 0; background: #fff; font-size: 11px; }
+    body { font-size: 11px; } /* Keep base font size for Electron */
+    /* Minimalistic overrides for Tailwind */
     h1, h2 { margin: 2px 0 0 0; font-size: 13px; font-weight: 600; }
     h2 { font-size: 12px; margin-top: 4px; }
-    ul { padding: 0 0.5em; margin: 0; font-size: 11px; }
+    ul { padding: 0 0.5em; margin: 0; }
     li { margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between; }
-    button.remove, button.move { margin-left: 4px; padding: 0 4px; font-size: 10px; line-height: 1; height: 16px; }
-    #taskForm, #scratchForm { width: 98%; margin: 4px auto 0 auto; display: flex; gap: 2px; }
-    #taskInput, #scratchInput { flex: 1; padding: 2px 4px; font-size: 11px; }
-    #addBtn, #addScratchBtn { padding: 2px 8px; font-size: 11px; }
+    /* Specific button styles for remove/move to override Tailwind defaults */
+    button.remove, button.move {
+      margin-left: 4px;
+      padding: 0 4px;
+      font-size: 10px;
+      line-height: 1;
+      height: 16px;
+      border-radius: 0.25rem; /* Tailwind's rounded-sm */
+      border: 1px solid transparent;
+      transition: all 0.1s ease-in-out;
+    }
+    button.remove {
+      background-color: #ef4444; /* red-500 */
+      color: white;
+    }
+    button.remove:hover {
+      background-color: #dc2626; /* red-600 */
+    }
+    button.move {
+      background-color: #3b82f6; /* blue-500 */
+      color: white;
+    }
+    button.move:hover {
+      background-color: #2563eb; /* blue-600 */
+    }
   </style>
 </head>
-<body>
-  <h1>Task Queue</h1>
-  <div id="tasks"></div>
-  <h2>Task Scratch Pad</h2>
-  <div id="scratch"></div>
-  <form id="scratchForm">
-    <input id="scratchInput" type="text" placeholder="Quick note..." required />
-    <button id="addScratchBtn" type="submit">+</button>
-  </form>
-  <h2>Task Inbox</h2>
-  <div id="inbox"></div>
-  <form id="taskForm">
-    <input id="taskInput" type="text" placeholder="New task..." required />
-    <button id="addBtn" type="submit">+</button>
-  </form>
+<body class="bg-gray-50 text-gray-800 font-sans p-0.5">
+  <div class="tabs flex justify-around bg-gray-200 p-0.5 rounded-t">
+    <button class="tab-button flex-1 text-center py-1 text-xs font-semibold text-gray-700 hover:bg-gray-300 rounded-tl focus:outline-none active-tab" data-tab="tasks">Tasks</button>
+    <button class="tab-button flex-1 text-center py-1 text-xs font-semibold text-gray-700 hover:bg-gray-300 rounded-tr focus:outline-none" data-tab="inbox">Inbox</button>
+  </div>
+
+  <div id="tasks-tab-content" class="tab-content p-0.5 bg-white rounded-b shadow-sm">
+    <h1 class="text-sm font-semibold mb-0.5">Task Queue</h1>
+    <div id="tasks" class="mb-1 p-0.5 bg-white rounded shadow-sm"></div>
+    <h2 class="text-xs font-semibold mt-0.5 mb-0.5">Task Scratch Pad</h2>
+    <div id="scratch" class="mb-1 p-0.5 bg-white rounded shadow-sm"></div>
+    <form id="scratchForm" class="flex gap-0.5 mb-1">
+      <input id="scratchInput" type="text" placeholder="Quick note..." required class="flex-1 p-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400" />
+      <button id="addScratchBtn" type="submit" class="px-1 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">+</button>
+    </form>
+  </div>
+
+  <div id="inbox-tab-content" class="tab-content p-0.5 bg-white rounded-b shadow-sm hidden">
+    <h2 class="text-xs font-semibold mt-0.5 mb-0.5">Task Inbox</h2>
+    <div id="inbox" class="mb-1 p-0.5 bg-white rounded shadow-sm"></div>
+    <form id="taskForm" class="flex gap-0.5">
+      <input id="taskInput" type="text" placeholder="New task..." required class="flex-1 p-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400" />
+      <button id="addBtn" type="submit" class="px-1 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">+</button>
+    </form>
+  </div>
+
   <script>
     const { ipcRenderer } = require('electron');
+
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active-tab', 'bg-white');
+        button.classList.add('bg-gray-200');
+      });
+      document.querySelector(`.tab-button[data-tab="${tabId.replace('-tab-content', '')}"]`).classList.add('active-tab', 'bg-white');
+      document.querySelector(`.tab-button[data-tab="${tabId.replace('-tab-content', '')}"]`).classList.remove('bg-gray-200');
+    }
+
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        showTab(`${button.dataset.tab}-tab-content`);
+      });
+    });
+
     function renderList(container, items, removeHandler, moveHandler) {
       if (!Array.isArray(items) || items.length === 0) {
-        container.innerHTML = '<p style="margin:0;">No items found.</p>';
+        container.innerHTML = '<p class="text-gray-500 text-xs m-0 p-0.5">No items found.</p>';
         return;
       }
-      container.innerHTML = '<ul>' + items.map((t, i) =>
-        `<li>${typeof t === 'string' ? t : JSON.stringify(t)}${moveHandler ? ` <button class='move' data-index='${i}' title='Add to Queue'>&#8594;</button>` : ''}${removeHandler ? ` <button class='remove' data-index='${i}'>×</button>` : ''}</li>`
+      container.innerHTML = '<ul class="list-none p-0 m-0">' + items.map((t, i) =>
+        `<li class="flex items-center justify-between py-0.5 px-0.5 border-b border-gray-200 last:border-b-0">
+          <span class="text-xs">${typeof t === 'string' ? t : JSON.stringify(t)}</span>
+          <div class="flex-shrink-0">
+            ${moveHandler ? `<button class='move' data-index='${i}' title='Move'>&#8594;</button>` : ''}
+            ${removeHandler ? `<button class='remove' data-index='${i}'>×</button>` : ''}
+          </div>
+        </li>`
       ).join('') + '</ul>';
       if (removeHandler) {
         container.querySelectorAll('button.remove').forEach(btn => {
@@ -93,6 +154,7 @@
     };
     ipcRenderer.on('tasks-updated', refresh);
     refresh();
+    showTab('tasks-tab-content'); // Show tasks tab by default
   </script>
 </body>
 </html>
