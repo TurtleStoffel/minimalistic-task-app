@@ -66,6 +66,20 @@ ipcMain.on('add-task-inbox', (event, task) => {
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
+ipcMain.on('move-task-to-scratch', (event, idx) => {
+  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
+  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
+  const inbox = readJsonFile(inboxPath);
+  const scratch = readJsonFile(scratchPath);
+  if (idx >= 0 && idx < inbox.length) {
+    const [task] = inbox.splice(idx, 1);
+    scratch.push(task);
+    writeJsonFile(inboxPath, inbox);
+    writeJsonFile(scratchPath, scratch);
+  }
+  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
+});
+
 ipcMain.on('remove-task-inbox', (event, idx) => {
   const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
   const inbox = readJsonFile(inboxPath);

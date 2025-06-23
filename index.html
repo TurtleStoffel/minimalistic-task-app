@@ -236,7 +236,10 @@
           document.getElementById('inbox'),
           inbox,
           idx => ipcRenderer.send('remove-task-inbox', idx),
-          [{ label: '&#8594;', title: 'Move to Queue', action: 'move-task-to-queue', handler: idx => ipcRenderer.send('move-task-to-queue', idx) }]
+          [
+            { label: '&#8594; Q', title: 'Move to Queue', action: 'move-task-to-queue', handler: idx => ipcRenderer.send('move-task-to-queue', idx) },
+            { label: '&#8594; S', title: 'Move to Scratch Pad', action: 'move-task-to-scratch', handler: idx => ipcRenderer.send('move-task-to-scratch', idx) }
+          ]
         );
       });
     }
