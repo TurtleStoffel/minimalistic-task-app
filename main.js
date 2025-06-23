@@ -37,7 +37,7 @@ function getTasksAndInboxAndScratch() {
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 300,
+    width: 350,
     height: 300,
     resizable: false,
     minimizable: false,
@@ -141,6 +141,20 @@ ipcMain.on('move-queue-to-inbox', (event, idx) => {
     const [task] = tasks.splice(idx, 1);
     inbox.push(task);
     writeJsonFile(tasksPath, tasks);
+    writeJsonFile(inboxPath, inbox);
+  }
+  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
+});
+
+ipcMain.on('move-scratch-to-inbox', (event, idx) => {
+  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
+  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
+  const scratch = readJsonFile(scratchPath);
+  const inbox = readJsonFile(inboxPath);
+  if (idx >= 0 && idx < scratch.length) {
+    const [task] = scratch.splice(idx, 1);
+    inbox.push(task);
+    writeJsonFile(scratchPath, scratch);
     writeJsonFile(inboxPath, inbox);
   }
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));

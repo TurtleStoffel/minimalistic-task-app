@@ -190,7 +190,7 @@
       });
     });
 
-    function renderList(container, items, removeHandler, moveHandler) {
+    function renderList(container, items, removeHandler, moveButtons = []) {
       if (!Array.isArray(items) || items.length === 0) {
         container.innerHTML = '<p class="text-xs m-0 p-0.5" style="color: var(--text-placeholder);">No items found.</p>';
         return;
@@ -199,7 +199,7 @@
         `<li class="flex items-center justify-between py-0.5 px-0.5 border-b last:border-b-0" style="border-color: var(--border-task-item);">
           <span class="text-xs" style="color: var(--text-task-item);">${typeof t === 'string' ? t : JSON.stringify(t)}</span>
           <div class="flex-shrink-0">
-            ${moveHandler ? `<button class='move' data-index='${i}' title='Move'>&#8594;</button>` : ''}
+            ${moveButtons.map(btn => `<button class='move' data-index='${i}' data-action='${btn.action}' title='${btn.title}'>${btn.label}</button>`).join('')}
             ${removeHandler ? `<button class='remove' data-index='${i}'>×</button>` : ''}
           </div>
         </li>`
@@ -209,11 +209,11 @@
           btn.onclick = e => removeHandler(parseInt(btn.dataset.index, 10));
         });
       }
-      if (moveHandler) {
-        container.querySelectorAll('button.move').forEach(btn => {
-          btn.onclick = e => moveHandler(parseInt(btn.dataset.index, 10));
+      moveButtons.forEach(moveBtnConfig => {
+        container.querySelectorAll(`button.move[data-action='${moveBtnConfig.action}']`).forEach(btn => {
+          btn.onclick = e => moveBtnConfig.handler(parseInt(btn.dataset.index, 10));
         });
-      }
+      });
     }
     function refresh() {
       ipcRenderer.invoke('get-tasks').then(({ tasks, inbox, scratch }) => {
@@ -221,19 +221,22 @@
           document.getElementById('tasks'),
           tasks,
           idx => ipcRenderer.send('remove-task-queue', idx),
-          idx => ipcRenderer.send('move-queue-to-inbox', idx)
+          [{ label: '&#8594;', title: 'Move to Inbox', action: 'move-queue-to-inbox', handler: idx => ipcRenderer.send('move-queue-to-inbox', idx) }]
         );
         renderList(
           document.getElementById('scratch'),
           scratch,
           idx => ipcRenderer.send('remove-task-scratch', idx),
-          idx => ipcRenderer.send('move-scratch-to-queue', idx)
+          [
+            { label: '&#8594; Q', title: 'Move to Queue', action: 'move-scratch-to-queue', handler: idx => ipcRenderer.send('move-scratch-to-queue', idx) },
+            { label: '&#8594; I', title: 'Move to Inbox', action: 'move-scratch-to-inbox', handler: idx => ipcRenderer.send('move-scratch-to-inbox', idx) }
+          ]
         );
         renderList(
           document.getElementById('inbox'),
           inbox,
           idx => ipcRenderer.send('remove-task-inbox', idx),
-          idx => ipcRenderer.send('move-task-to-queue', idx)
+          [{ label: '&#8594;', title: 'Move to Queue', action: 'move-task-to-queue', handler: idx => ipcRenderer.send('move-task-to-queue', idx) }]
         );
       });
     }
