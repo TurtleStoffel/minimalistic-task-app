@@ -2,7 +2,25 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-const TASK_QUEUE_DIR = path.join('C:', 'Users', 'stefa', 'coding', 'task-queue');
+// Config management
+function getConfig() {
+  const configPath = path.join(__dirname, 'config.json');
+  try {
+    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } catch {
+    return { dataFolder: './data' };
+  }
+}
+
+function expandHome(filepath) {
+  if (filepath.startsWith('~/')) {
+    return path.join(require('os').homedir(), filepath.slice(2));
+  }
+  return filepath;
+}
+
+const config = getConfig();
+const TASK_QUEUE_DIR = path.resolve(expandHome(config.dataFolder));
 
 function readJsonFile(filePath) {
   try {

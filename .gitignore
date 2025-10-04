@@ -1,4 +1,5 @@
 .vscode/
+config.json
 
 ## Default .gitnore for Node.js projects
 # Logs
