@@ -138,6 +138,17 @@ ipcMain.on('move-scratch-to-inbox', (event, idx) => {
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
+ipcMain.on('reorder-scratch', (event, { fromIndex, toIndex }) => {
+  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
+  const scratch = readJsonFile(scratchPath);
+  if (fromIndex >= 0 && fromIndex < scratch.length && toIndex >= 0 && toIndex < scratch.length) {
+    const [task] = scratch.splice(fromIndex, 1);
+    scratch.splice(toIndex, 0, task);
+    writeJsonFile(scratchPath, scratch);
+  }
+  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
+});
+
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {

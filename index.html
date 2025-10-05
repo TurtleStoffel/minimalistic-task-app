@@ -74,6 +74,17 @@
       border: 1px solid transparent;
       transition: all 0.1s ease-in-out;
     }
+
+    /* Drag and drop styles */
+    .draggable {
+      cursor: move;
+    }
+    .dragging {
+      opacity: 0.5;
+    }
+    .drag-over {
+      border-top: 2px solid #3b82f6 !important;
+    }
     button.remove {
       background-color: #ef4444; /* red-500 */
       color: white;
@@ -165,6 +176,53 @@
   <script>
     const { ipcRenderer } = require('electron');
 
+    let draggedElement = null;
+
+    function setupDragAndDrop(container) {
+      const items = container.querySelectorAll('.draggable');
+
+      items.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          draggedElement = item;
+          item.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        item.addEventListener('dragend', (e) => {
+          item.classList.remove('dragging');
+          container.querySelectorAll('.drag-over').forEach(el => {
+            el.classList.remove('drag-over');
+          });
+          draggedElement = null;
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+
+          if (draggedElement && draggedElement !== item) {
+            item.classList.add('drag-over');
+          }
+        });
+
+        item.addEventListener('dragleave', (e) => {
+          item.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          item.classList.remove('drag-over');
+
+          if (draggedElement && draggedElement !== item) {
+            const fromIndex = parseInt(draggedElement.dataset.index);
+            const toIndex = parseInt(item.dataset.index);
+
+            ipcRenderer.send('reorder-scratch', { fromIndex, toIndex });
+          }
+        });
+      });
+    }
+
     function showTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
@@ -188,13 +246,15 @@
       });
     });
 
-    function renderList(container, items, removeHandler, moveButtons = []) {
+    function renderList(container, items, removeHandler, moveButtons = [], enableDrag = false) {
       if (!Array.isArray(items) || items.length === 0) {
         container.innerHTML = '<p class="text-xs m-0 p-0.5" style="color: var(--text-placeholder);">No items found.</p>';
         return;
       }
       container.innerHTML = '<ul class="list-none p-0 m-0">' + items.map((t, i) =>
-        `<li class="flex items-center justify-between py-0.5 px-0.5 border-b last:border-b-0" style="border-color: var(--border-task-item);">
+        `<li class="flex items-center justify-between py-0.5 px-0.5 border-b last:border-b-0 ${enableDrag ? 'draggable' : ''}"
+            ${enableDrag ? `draggable="true" data-index="${i}"` : ''}
+            style="border-color: var(--border-task-item);">
           <span class="text-xs" style="color: var(--text-task-item);">${typeof t === 'string' ? t : JSON.stringify(t)}</span>
           <div class="flex-shrink-0">
             ${moveButtons.map(btn => `<button class='move' data-index='${i}' data-action='${btn.action}' title='${btn.title}'>${btn.label}</button>`).join('')}
@@ -212,6 +272,11 @@
           btn.onclick = e => moveBtnConfig.handler(parseInt(btn.dataset.index, 10));
         });
       });
+
+      // Setup drag and drop if enabled
+      if (enableDrag) {
+        setupDragAndDrop(container);
+      }
     }
     function refresh() {
       ipcRenderer.invoke('get-tasks').then(({ tasks, inbox, scratch }) => {
@@ -221,7 +286,8 @@
           idx => ipcRenderer.send('remove-task-scratch', idx),
           [
             { label: '&#8594; I', title: 'Move to Inbox', action: 'move-scratch-to-inbox', handler: idx => ipcRenderer.send('move-scratch-to-inbox', idx) }
-          ]
+          ],
+          true // Enable drag and drop for scratch pad
         );
         renderList(
           document.getElementById('inbox'),
