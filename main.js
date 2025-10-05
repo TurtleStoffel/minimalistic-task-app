@@ -22,7 +22,8 @@ function expandHome(filepath) {
 const config = getConfig();
 const TASK_QUEUE_DIR = path.resolve(expandHome(config.dataFolder));
 
-function readJsonFile(filePath) {
+function readJsonFile(fileName) {
+  const filePath = path.join(TASK_QUEUE_DIR, fileName);
   try {
     if (fs.existsSync(filePath)) {
       return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
@@ -33,7 +34,8 @@ function readJsonFile(filePath) {
   return [];
 }
 
-function writeJsonFile(filePath, data) {
+function writeJsonFile(fileName, data) {
+  const filePath = path.join(TASK_QUEUE_DIR, fileName);
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
@@ -42,11 +44,8 @@ function writeJsonFile(filePath, data) {
 }
 
 function getTasksAndInboxAndScratch() {
-  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
-  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
-
-  const inbox = readJsonFile(inboxPath);
-  const scratch = readJsonFile(scratchPath);
+  const inbox = readJsonFile('Task Inbox.json');
+  const scratch = readJsonFile('Task Scratch Pad.json');
 
   return { inbox, scratch };
 }
@@ -75,76 +74,67 @@ ipcMain.handle('get-tasks', () => {
 });
 
 ipcMain.on('add-task-inbox', (event, task) => {
-  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
-  const inbox = readJsonFile(inboxPath);
+  const inbox = readJsonFile('Task Inbox.json');
   inbox.push(task);
-  writeJsonFile(inboxPath, inbox);
+  writeJsonFile('Task Inbox.json', inbox);
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
 ipcMain.on('move-task-to-scratch', (event, idx) => {
-  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
-  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
-  const inbox = readJsonFile(inboxPath);
-  const scratch = readJsonFile(scratchPath);
+  const inbox = readJsonFile('Task Inbox.json');
+  const scratch = readJsonFile('Task Scratch Pad.json');
   if (idx >= 0 && idx < inbox.length) {
     const [task] = inbox.splice(idx, 1);
     scratch.push(task);
-    writeJsonFile(inboxPath, inbox);
-    writeJsonFile(scratchPath, scratch);
+    writeJsonFile('Task Inbox.json', inbox);
+    writeJsonFile('Task Scratch Pad.json', scratch);
   }
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
 ipcMain.on('remove-task-inbox', (event, idx) => {
-  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
-  const inbox = readJsonFile(inboxPath);
+  const inbox = readJsonFile('Task Inbox.json');
   if (idx >= 0 && idx < inbox.length) {
     inbox.splice(idx, 1);
-    writeJsonFile(inboxPath, inbox);
+    writeJsonFile('Task Inbox.json', inbox);
   }
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
 ipcMain.on('add-task-scratch', (event, task) => {
-  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
-  const scratch = readJsonFile(scratchPath);
+  const scratch = readJsonFile('Task Scratch Pad.json');
   scratch.push(task);
-  writeJsonFile(scratchPath, scratch);
+  writeJsonFile('Task Scratch Pad.json', scratch);
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
 ipcMain.on('remove-task-scratch', (event, idx) => {
-  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
-  const scratch = readJsonFile(scratchPath);
+  const scratch = readJsonFile('Task Scratch Pad.json');
   if (idx >= 0 && idx < scratch.length) {
     scratch.splice(idx, 1);
-    writeJsonFile(scratchPath, scratch);
+    writeJsonFile('Task Scratch Pad.json', scratch);
   }
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
 ipcMain.on('move-scratch-to-inbox', (event, idx) => {
-  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
-  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
-  const scratch = readJsonFile(scratchPath);
-  const inbox = readJsonFile(inboxPath);
+  const scratch = readJsonFile('Task Scratch Pad.json');
+  const inbox = readJsonFile('Task Inbox.json');
   if (idx >= 0 && idx < scratch.length) {
     const [task] = scratch.splice(idx, 1);
     inbox.push(task);
-    writeJsonFile(scratchPath, scratch);
-    writeJsonFile(inboxPath, inbox);
+    writeJsonFile('Task Scratch Pad.json', scratch);
+    writeJsonFile('Task Inbox.json', inbox);
   }
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
 ipcMain.on('reorder-scratch', (event, { fromIndex, toIndex }) => {
-  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
-  const scratch = readJsonFile(scratchPath);
+  const scratch = readJsonFile('Task Scratch Pad.json');
   if (fromIndex >= 0 && fromIndex < scratch.length && toIndex >= 0 && toIndex < scratch.length) {
     const [task] = scratch.splice(fromIndex, 1);
     scratch.splice(toIndex, 0, task);
-    writeJsonFile(scratchPath, scratch);
+    writeJsonFile('Task Scratch Pad.json', scratch);
   }
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
