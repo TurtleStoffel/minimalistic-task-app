@@ -263,6 +263,11 @@
     refresh();
     showTab('tasks-tab-content'); // Show tasks tab by default
 
+    // Auto-refresh data every 5 seconds to sync with other instances
+    setInterval(() => {
+      refresh();
+    }, 5000);
+
     // Dark mode toggle logic
     const darkModeToggle = document.getElementById('darkModeToggle');
     const bodyElement = document.body; // Target the body element for the class
