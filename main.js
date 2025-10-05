@@ -42,15 +42,13 @@ function writeJsonFile(filePath, data) {
 }
 
 function getTasksAndInboxAndScratch() {
-  const tasksPath = path.join(TASK_QUEUE_DIR, 'task-queue.json');
   const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
   const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
 
-  const tasks = readJsonFile(tasksPath);
   const inbox = readJsonFile(inboxPath);
   const scratch = readJsonFile(scratchPath);
 
-  return { tasks, inbox, scratch };
+  return { inbox, scratch };
 }
 
 function createWindow() {
@@ -108,30 +106,6 @@ ipcMain.on('remove-task-inbox', (event, idx) => {
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
 
-ipcMain.on('move-task-to-queue', (event, idx) => {
-  const tasksPath = path.join(TASK_QUEUE_DIR, 'task-queue.json');
-  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
-  const inbox = readJsonFile(inboxPath);
-  const tasks = readJsonFile(tasksPath);
-  if (idx >= 0 && idx < inbox.length) {
-    const [task] = inbox.splice(idx, 1);
-    tasks.push(task);
-    writeJsonFile(inboxPath, inbox);
-    writeJsonFile(tasksPath, tasks);
-  }
-  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
-});
-
-ipcMain.on('remove-task-queue', (event, idx) => {
-  const tasksPath = path.join(TASK_QUEUE_DIR, 'task-queue.json');
-  const tasks = readJsonFile(tasksPath);
-  if (idx >= 0 && idx < tasks.length) {
-    tasks.splice(idx, 1);
-    writeJsonFile(tasksPath, tasks);
-  }
-  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
-});
-
 ipcMain.on('add-task-scratch', (event, task) => {
   const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
   const scratch = readJsonFile(scratchPath);
@@ -146,34 +120,6 @@ ipcMain.on('remove-task-scratch', (event, idx) => {
   if (idx >= 0 && idx < scratch.length) {
     scratch.splice(idx, 1);
     writeJsonFile(scratchPath, scratch);
-  }
-  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
-});
-
-ipcMain.on('move-scratch-to-queue', (event, idx) => {
-  const tasksPath = path.join(TASK_QUEUE_DIR, 'task-queue.json');
-  const scratchPath = path.join(TASK_QUEUE_DIR, 'Task Scratch Pad.json');
-  const scratch = readJsonFile(scratchPath);
-  const tasks = readJsonFile(tasksPath);
-  if (idx >= 0 && idx < scratch.length) {
-    const [task] = scratch.splice(idx, 1);
-    tasks.push(task);
-    writeJsonFile(scratchPath, scratch);
-    writeJsonFile(tasksPath, tasks);
-  }
-  BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
-});
-
-ipcMain.on('move-queue-to-inbox', (event, idx) => {
-  const tasksPath = path.join(TASK_QUEUE_DIR, 'task-queue.json');
-  const inboxPath = path.join(TASK_QUEUE_DIR, 'Task Inbox.json');
-  const tasks = readJsonFile(tasksPath);
-  const inbox = readJsonFile(inboxPath);
-  if (idx >= 0 && idx < tasks.length) {
-    const [task] = tasks.splice(idx, 1);
-    inbox.push(task);
-    writeJsonFile(tasksPath, tasks);
-    writeJsonFile(inboxPath, inbox);
   }
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });

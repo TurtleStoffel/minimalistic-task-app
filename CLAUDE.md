@@ -17,7 +17,6 @@ The application uses JSON files for persistent storage. The data folder location
 ```
 
 **Data files** (stored in the configured data folder):
-- `task-queue.json`: Main task queue
 - `Task Inbox.json`: Inbox for tasks to be processed
 - `Task Scratch Pad.json`: Quick notes and temporary thoughts
 
@@ -35,15 +34,3 @@ The application uses JSON files for persistent storage. The data folder location
 - Dark/light mode toggle using CSS variables and localStorage
 - Uses Tailwind CSS from CDN for styling
 - Real-time updates via IPC events
-
-### IPC Communication
-
-**Handlers** (main.js):
-- `get-tasks`: Returns all three task lists
-- `add-task-inbox`, `add-task-scratch`: Add new tasks
-- `remove-task-inbox`, `remove-task-queue`, `remove-task-scratch`: Delete tasks
-- `move-task-to-queue`, `move-task-to-scratch`: Move tasks from inbox
-- `move-queue-to-inbox`, `move-scratch-to-queue`, `move-scratch-to-inbox`: Move between lists
-
-**Events** (index.html):
-- `tasks-updated`: Broadcasted to all windows when data changes, triggers UI refresh

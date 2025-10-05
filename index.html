@@ -145,8 +145,6 @@
   </div>
 
   <div id="tasks-tab-content" class="tab-content p-0.5 rounded-b shadow-sm" style="background-color: var(--bg-content);">
-    <h1 class="text-sm font-semibold mb-0.5" style="color: var(--text-body);">Task Queue</h1>
-    <div id="tasks" class="mb-1 p-0.5 rounded shadow-sm" style="background-color: var(--bg-task-item);"></div>
     <h2 class="text-xs font-semibold mt-0.5 mb-0.5" style="color: var(--text-body);">Task Scratch Pad</h2>
     <div id="scratch" class="mb-1 p-0.5 rounded shadow-sm" style="background-color: var(--bg-task-item);"></div>
     <form id="scratchForm" class="flex gap-0.5 mb-1">
@@ -218,17 +216,10 @@
     function refresh() {
       ipcRenderer.invoke('get-tasks').then(({ tasks, inbox, scratch }) => {
         renderList(
-          document.getElementById('tasks'),
-          tasks,
-          idx => ipcRenderer.send('remove-task-queue', idx),
-          [{ label: '&#8594;', title: 'Move to Inbox', action: 'move-queue-to-inbox', handler: idx => ipcRenderer.send('move-queue-to-inbox', idx) }]
-        );
-        renderList(
           document.getElementById('scratch'),
           scratch,
           idx => ipcRenderer.send('remove-task-scratch', idx),
           [
-            { label: '&#8594; Q', title: 'Move to Queue', action: 'move-scratch-to-queue', handler: idx => ipcRenderer.send('move-scratch-to-queue', idx) },
             { label: '&#8594; I', title: 'Move to Inbox', action: 'move-scratch-to-inbox', handler: idx => ipcRenderer.send('move-scratch-to-inbox', idx) }
           ]
         );
@@ -237,7 +228,6 @@
           inbox,
           idx => ipcRenderer.send('remove-task-inbox', idx),
           [
-            { label: '&#8594; Q', title: 'Move to Queue', action: 'move-task-to-queue', handler: idx => ipcRenderer.send('move-task-to-queue', idx) },
             { label: '&#8594; S', title: 'Move to Scratch Pad', action: 'move-task-to-scratch', handler: idx => ipcRenderer.send('move-task-to-scratch', idx) }
           ]
         );
