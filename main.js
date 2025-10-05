@@ -103,7 +103,7 @@ ipcMain.on('remove-task-inbox', (event, idx) => {
 
 ipcMain.on('add-task-scratch', (event, task) => {
   const scratch = readJsonFile('Task Scratch Pad.json');
-  scratch.push(task);
+  scratch.unshift(task);
   writeJsonFile('Task Scratch Pad.json', scratch);
   BrowserWindow.getAllWindows().forEach(win => win.webContents.send('tasks-updated'));
 });
