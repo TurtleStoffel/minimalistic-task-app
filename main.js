@@ -43,11 +43,25 @@ function writeJsonFile(fileName, data) {
   }
 }
 
+function readTasksFile() {
+  const filePath = path.join(TASK_QUEUE_DIR, 'tasks.json');
+  try {
+    if (fs.existsSync(filePath)) {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      return data.tasks || [];
+    }
+  } catch (e) {
+    console.error(`Error reading file ${filePath}:`, e);
+  }
+  return [];
+}
+
 function getTasksAndInboxAndScratch() {
+  const tasks = readTasksFile();
   const inbox = readJsonFile('Task Inbox.json');
   const scratch = readJsonFile('Task Scratch Pad.json');
 
-  return { inbox, scratch };
+  return { tasks, inbox, scratch };
 }
 
 function createWindow() {
@@ -69,7 +83,7 @@ function createWindow() {
   win.loadFile('index.html');
 }
 
-ipcMain.handle('get-tasks', () => {
+ipcMain.handle('get-data', () => {
   return getTasksAndInboxAndScratch();
 });
 
