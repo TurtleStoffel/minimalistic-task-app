@@ -53,6 +53,12 @@
       font-size: 11px; /* Keep base font size for Electron */
       background-color: var(--bg-body);
       color: var(--text-body);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+      padding: 0.125rem;
+      box-sizing: border-box;
     }
 
     /* Minimalistic overrides for Tailwind */
@@ -142,6 +148,33 @@
     #darkModeToggle:hover {
       background-color: var(--hover-bg-toggle);
     }
+
+    /* Tab content area */
+    .tab-content {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tab-content.hidden {
+      display: none;
+    }
+
+    #scratch, #tasks, #inbox {
+      overflow-y: auto;
+    }
+
+    /* Footer styles */
+    #footer {
+      background-color: var(--bg-header);
+      color: var(--text-body);
+      font-size: 10px;
+      padding: 4px;
+      border-radius: 0 0 0.25rem 0.25rem;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body class="font-sans p-0.5">
@@ -177,6 +210,10 @@
       <input id="taskInput" type="text" placeholder="New task..." required class="flex-1 p-0.5 text-xs rounded focus:outline-none focus:ring-1 focus:ring-blue-400" style="background-color: var(--bg-input); color: var(--text-input); border-color: var(--border-input);" />
       <button id="addBtn" type="submit" class="px-1 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">+</button>
     </form>
+  </div>
+
+  <div id="footer" style="background-color: var(--bg-header); color: var(--text-body);">
+    <span id="in-progress-task" class="text-xs">No task in progress</span>
   </div>
 
   <script>
@@ -309,6 +346,15 @@
             { label: '&#8594; S', title: 'Move to Scratch Pad', action: 'move-task-to-scratch', handler: idx => ipcRenderer.send('move-task-to-scratch', idx) }
           ]
         );
+
+        // Update footer with in-progress task
+        const inProgressTask = tasks.find(t => t.status === 'In Progress');
+        const footerElement = document.getElementById('in-progress-task');
+        if (inProgressTask) {
+          footerElement.textContent = `⚡ ${inProgressTask.title}`;
+        } else {
+          footerElement.textContent = 'No task in progress';
+        }
       });
     }
     document.getElementById('taskForm').onsubmit = e => {
