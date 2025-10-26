@@ -17,7 +17,7 @@ The application uses JSON files for persistent storage. The data folder location
 ```
 
 **Data files** (stored in the configured data folder):
-- `Task Inbox.json`: Inbox for tasks to be processed
+- `task-inbox.json`: Inbox for tasks to be processed
 - `Task Scratch Pad.json`: Quick notes and temporary thoughts
 
 ### Application Structure
